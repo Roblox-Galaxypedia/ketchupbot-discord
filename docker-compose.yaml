@@ -1,0 +1,9 @@
+version: '3.9'
+services:
+  ketchupbot-discord:
+    image: ketchupbot-discord
+    build: .
+    container_name: ketchupbot-discord
+    restart: on-failure
+    env_file: .env
+    network_mode: host
