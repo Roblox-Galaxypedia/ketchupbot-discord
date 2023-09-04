@@ -52,7 +52,7 @@ export class ShipUpdater {
 	shipsData: any
 	galaxypediaShipList: any
 	runcount!: number
-	async main(bot: any, logChange: Function, logDiscord: Function, singlepass: boolean = false) {
+	async main(bot: any, logChange: Function, logDiscord: Function, singlepass: boolean = false): Promise<cron.ScheduledTask | void> {
 		this.SHIP_INFOBOX_REGEX = /{{\s*Ship[ _]Infobox(?:[^{}]|{{[^{}]*}}|{{{[^{}]*}}})+(?:(?!{{(?:[^{}]|{{[^{}]*}}|{{{[^{}]*}}})*)}})/si
 		this.bot = bot
 		this.logChange = logChange
