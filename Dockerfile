@@ -1,4 +1,4 @@
-from node
+from node:18
 WORKDIR /app
 COPY package.json .
 RUN npm install --omit=dev && npm install -g typescript
