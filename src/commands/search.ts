@@ -15,10 +15,6 @@ export class SearchCommand extends Command {
             builder
                 .setName("search")
                 .setDescription("Search the Galaxypedia")
-/*                 .addStringOption((option) =>
-                    option.setName("query")
-                        .setDescription("The query to search for")
-                        .setRequired(true)), */
         )
     }
 
