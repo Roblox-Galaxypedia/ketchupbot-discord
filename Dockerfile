@@ -1,7 +1,17 @@
-from node:18
+from node:lts
+
+ENV NODE_ENV production
+
 WORKDIR /app
-COPY package.json .
-RUN npm install --omit=dev && npm install -g typescript
+
+COPY package*.json .
+
+RUN npm ci
+
+RUN npm install -g typescript
+
 COPY . .
+
 RUN tsc
+
 CMD ["node", "dist/index.js"]
