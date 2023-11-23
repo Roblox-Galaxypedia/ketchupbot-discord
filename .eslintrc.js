@@ -11,11 +11,13 @@ module.exports = {
 	"root": true,
 	"extends": [
 		"eslint:recommended",
-		"plugin:@typescript-eslint/eslint-recommended",
-		"plugin:@typescript-eslint/recommended"
+		"plugin:@typescript-eslint/recommended-type-checked",
+		"plugin:@typescript-eslint/stylistic-type-checked"
 	],
 	"parserOptions": {
-		"ecmaVersion": "latest"
+		"ecmaVersion": "latest",
+		"project": true,
+		"tsconfigRootDir": __dirname
 	},
 	"rules": {
 		"quotes": [
