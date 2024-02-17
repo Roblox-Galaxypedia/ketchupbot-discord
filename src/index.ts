@@ -139,8 +139,8 @@ bot.on(Events.MessageCreate, async (message) => {
 
             let bingus: Discord.Message
             if (response.tokens && response.embeddings_usage) {
-                const totalchatcost = parseFloat((((response.tokens.prompt_tokens / 1000) * 0.0015) + ((response.tokens.completion_tokens / 1000) * 0.002)).toFixed(8))
-                const totalembeddingscost = parseFloat(((response.embeddings_usage.total_tokens / 1000) * 0.0001).toFixed(8))
+                const totalchatcost = parseFloat((((response.tokens.prompt_tokens / 1000) * 0.0005) + ((response.tokens.completion_tokens / 1000) * 0.0015)).toFixed(8))
+                const totalembeddingscost = parseFloat(((response.embeddings_usage.total_tokens / 1000) * 0.00002).toFixed(8))
                 const totalcost = parseFloat((totalchatcost + totalembeddingscost).toFixed(8))
                 console.log("Context: ", response.context ?? "Unknown")
                 const contexttxt = Buffer.from(response.context ?? "Unknown", "utf8")
