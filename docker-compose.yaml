@@ -1,9 +1,11 @@
 version: '3.9'
 services:
   ketchupbot-discord:
-    image: ketchupbot-discord
+    image: ghcr.io/smallketchup82/ketchupbot-discord:main
     build: .
     container_name: ketchupbot-discord
     restart: on-failure
     env_file: .env
     network_mode: host
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
