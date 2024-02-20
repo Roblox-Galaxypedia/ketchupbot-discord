@@ -1,6 +1,6 @@
 import { Command, ChatInputCommand, CommandOptionsRunTypeEnum } from "@sapphire/framework"
 import * as Discord from "discord.js"
-import fetch from "node-fetch"
+import axios from "axios"
 
 export class SearchCommand extends Command {
     public constructor(context: Command.Context, options: Command.Options) {
@@ -41,7 +41,7 @@ export class SearchCommand extends Command {
             await interaction.deferReply({ ephemeral: true })
             const input = interaction.fields.getTextInputValue("query")
 
-            const { query } = await fetch(`https://robloxgalaxy.wiki/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(input)}&srlimit=5`).then(response => response.json())
+            const { query } = await axios.get(`https://robloxgalaxy.wiki/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(input)}&srlimit=5`).then(response => response.data)
 
             if (query.search.length <= 0) return await interaction.editReply("No results found, please try again!")
 

@@ -1,7 +1,7 @@
 import { Command } from "@sapphire/framework"
 import { ketchupbot } from "../index"
-import fetch from "node-fetch"
 import * as Discord from "discord.js"
+import axios from "axios"
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -50,69 +50,48 @@ export class SlashCommand extends Command {
         if (operation === "start") {
             await interaction.editReply("Starting ADCS...")
             
-            const res = fetch(`${adcs_endpoint}/start`, {
-                method: "POST",
+            const res = axios.post(`${adcs_endpoint}/start`, {}, {
                 headers: {
                     "Content-Type": "application/json"
-                }
+                    }
             })
 
             res.then(async (res) => {
-                if (!res.ok) {
-                    await interaction.editReply("Failed to start ADCS. Please inspect logs for more information")
-                    console.log(res)
-                    return
-                }
                 await interaction.editReply("Started ADCS!")
             })
 
             res.catch(async (err) => {
-                await interaction.editReply("Failed to start ADCS. Please inspect logs for more information")
                 console.error(err)
+                await interaction.editReply("Failed to start ADCS. Please inspect logs for more information")
             })
         } else if (operation === "stop") {
             await interaction.editReply("Stopping ADCS...")
 
-            const res = fetch(`${adcs_endpoint}/stop`, {
-                method: "POST",
+            const res = axios.post(`${adcs_endpoint}/stop`, {}, {
                 headers: {
                     "Content-Type": "application/json"
                 }
             })
 
             res.then(async (res) => {
-                if (!res.ok) {
-                    await interaction.editReply("Failed to stop ADCS. Please inspect logs for more information")
-                    console.log(res)
-                    return
-                }
                 await interaction.editReply("Stopped ADCS!")
             })
 
             res.catch(async (err) => {
-                await interaction.editReply("Failed to stop ADCS. Please inspect logs for more information")
                 console.error(err)
+                await interaction.editReply("Failed to stop ADCS. Please inspect logs for more information")
             })
         } else if (operation === "status") {
             await interaction.editReply("Checking ADCS status...")
 
-            const res = fetch(`${adcs_endpoint}/status`, {
-                method: "GET",
+            const res = axios.get(`${adcs_endpoint}/status`, {
                 headers: {
                     "Content-Type": "application/json"
                 }
             })
 
             res.then(async (res) => {
-                if (!res.ok) {
-                    await interaction.editReply("Failed to get ADCS status. Please inspect logs for more information")
-                    console.log(res)
-                    return
-                }
-                
-                const status = await res.json()
-
-                await interaction.editReply("ADCS is currently " + status.status)
+                await interaction.editReply("ADCS is currently " + res.data.status)
             })
 
             res.catch(async (err) => {
@@ -122,25 +101,19 @@ export class SlashCommand extends Command {
         } else if (operation === "force-create") {
             await interaction.editReply("Forcefully creating a new ADCS dataset...")
 
-            const res = fetch(`${adcs_endpoint}/force-create`, {
-                method: "POST",
+            const res = axios.post(`${adcs_endpoint}/force-create`, {}, {
                 headers: {
                     "Content-Type": "application/json"
-                }
+                    }
             })
 
             res.then(async (res) => {
-                if (!res.ok) {
-                    await interaction.editReply("Failed to create an ADCS dataset. Please inspect logs for more information")
-                    console.log(res)
-                    return
-                }
                 await interaction.editReply("Created a new ADCS dataset!")
             })
 
             res.catch(async (err) => {
-                await interaction.editReply("Failed to create an ADCS dataset. Please inspect logs for more information")
                 console.error(err)
+                await interaction.editReply("Failed to create an ADCS dataset. Please inspect logs for more information")
             })
         }
     }

@@ -5,9 +5,9 @@ import { SapphireClient, Events } from "@sapphire/framework"
 import { GatewayIntentBits } from "discord.js"
 import * as ketchuplib from "./ketchupbot"
 import fetch from "node-fetch"
-import * as nodefetch from "node-fetch"
 //import * as cron from "node-cron"
 import * as Discord from "discord.js"
+import axios, { AxiosError } from "axios"
 
 //const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -15,27 +15,23 @@ export const bot = new SapphireClient({ intents: [GatewayIntentBits.Guilds, Gate
 export const ketchupbot = new ketchuplib.ShipUpdater()
 
 async function logChange(name: string, revision: { revid: string | number } | null) {
-    await fetch(process.env.WEBHOOK!, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+    return axios.post(
+        process.env.WEBHOOK!,
+        JSON.stringify({
             content: `Updated **${name}**! ${(revision ? `([diff](<https://robloxgalaxy.wiki/index.php?title=${encodeURIComponent(name)}&diff=prev&oldid=${encodeURIComponent(revision.revid)}>))` : "")}`
-        })
-    })
+        }),
+        { headers: { "Content-Type": "application/json" } }
+        )
 }
 
-async function logDiscord(content: unknown) {
-    await fetch(process.env.WEBHOOK!, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+async function logDiscord(content: unknown): Promise<void> {
+    await axios.post(
+        process.env.WEBHOOK!,
+        JSON.stringify({
             content: typeof content === "string" ? content : JSON.stringify(content)
-        })
-    })
+        }),
+        { headers: { "Content-Type": "application/json" } }
+    )
 }
 
 bot.once(Events.ClientReady, async () => {
@@ -93,23 +89,14 @@ bot.on(Events.MessageCreate, async (message) => {
     const balling = await message.reply(`Thinking${loadingpattern[2]}`)
 
     try {
-        const api = fetch(process.env.GPTAPIURL || "http://localhost:3636/api/v1/ask", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                prompt: prompt,
-                username: message.author.username
+        const api = axios.post(process.env.GPTAPIURL || "http://localhost:3636/api/v1/ask", {
+            prompt: prompt,
+            username: message.author.username
+            }, {
+                headers: { "Content-Type": "application/json" }
             })
-        })
 
         api.then(async (res) => {
-            if (!res.ok) {
-                message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```\nCheck the console for more info.")
-                console.error(api)
-                return
-            }
 
             interface Response {
                 answer: string,
@@ -128,12 +115,12 @@ bot.on(Events.MessageCreate, async (message) => {
                 version: string
             }
 
-            const response: Response = await res.json()
-
-            if (!response) {
+            if (!res.data) {
                 message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```")
                 return
             }
+
+            const response: Response = res.data
 
             console.log(response.answer)
 
@@ -168,21 +155,25 @@ bot.on(Events.MessageCreate, async (message) => {
                             await bingus.reactions.removeAll()
                             console.error(err)
                         }) */
-        }).catch(async (err: unknown) => {
-            console.error(err)
+        }).catch(async (error: AxiosError) => {
+            await message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + error.response?.status + "```\nCheck the console for more info.")
 
-            if (err instanceof nodefetch.FetchError) {
-                switch (err.code) {
-                    case "ECONNREFUSED":
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Refused```")
-                        break
-                    case "ECONNRESET":
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Reset```")
-                        break
-                    default:
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
-                }
-            }
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              } else if (error.request) {
+                // The request was made but no response was received
+                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                // http.ClientRequest in node.js
+                console.log(error.request);
+              } else {
+                // Something happened in setting up the request that triggered an Error
+                console.log('Error', error.message);
+              }
+              console.log(error.config);
         })
 
         const animation = setInterval(async () => {
