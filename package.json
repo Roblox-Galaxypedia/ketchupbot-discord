@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@sapphire/framework": "^4.8.2",
+    "@sapphire/framework": "^4.8.5",
     "@types/node-cron": "^3.0.11",
     "@types/node-fetch": "^2.6.9",
     "chalk": "^4.1.2",
@@ -28,8 +28,8 @@
     "util": "^0.12.5"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
     "eslint": "^8.54.0",
     "typescript": "~5.3.3"
   }
