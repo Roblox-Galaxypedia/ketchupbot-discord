@@ -16,7 +16,7 @@ export class SlashCommand extends Command {
 
     public override registerApplicationCommands(registry: Command.Registry) {
         registry.registerChatInputCommand((builder) =>
-            builder //
+            builder
                 .setName(this.name)
                 .setDescription(this.description)
         )
@@ -47,7 +47,6 @@ export class SlashCommand extends Command {
         try {
             const buttonInteraction = await interaction.channel.awaitMessageComponent({ filter: (i) => i.user.id === interaction.user.id, time: 60000 })
 
-            
             if (buttonInteraction.customId === "confirm") {
                 await interaction.editReply({ content: "Shutting down...", components: [] })
                 process.exit(1738)

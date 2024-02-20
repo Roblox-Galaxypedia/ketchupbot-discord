@@ -29,6 +29,7 @@ module.exports = {
 			"never"
 		],
 		"@typescript-eslint/no-non-null-assertion": "off",
-		"@typescript-eslint/no-explicit-any": "off"
+		"@typescript-eslint/no-explicit-any": "off",
+		"require-await": "error",
 	}
 }

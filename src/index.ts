@@ -57,7 +57,7 @@ bot.on(Events.MessageCreate, async (message) => {
     // only run in the testing channel
     if (message.channel.id !== "1100079016372867122") {
         try {
-            message.delete()
+            await message.delete()
         } catch (e) {
             console.error(e)
         }
@@ -70,13 +70,13 @@ bot.on(Events.MessageCreate, async (message) => {
 
     // check if the prompt is too long
     if (prompt.length > 750) {
-        message.reply("Your question is too long! Please keep it under 500 characters.")
+        await message.reply("Your question is too long! Please keep it under 500 characters.")
         return
     }
 
     // check if the prompt is empty
     if (prompt === "") {
-        message.reply("Hello! I'm KetchupBot. The official Galaxypedia Assistant & Automatic Updater!\n\nUpdates ships every hour at XX:00\nUpdates turrets page every hour at XX:30\nMore information can be found here: <https://robloxgalaxy.wiki/wiki/User:Ketchupbot101>\n\nReport any unintended behaviour to Galaxypedia Head Staff immediately\n<https://discord.robloxgalaxy.wiki>")
+        await message.reply("Hello! I'm KetchupBot. The official Galaxypedia Assistant & Automatic Updater!\n\nUpdates ships every hour at XX:00\nUpdates turrets page every hour at XX:30\nMore information can be found here: <https://robloxgalaxy.wiki/wiki/User:Ketchupbot101>\n\nReport any unintended behaviour to Galaxypedia Head Staff immediately\n<https://discord.robloxgalaxy.wiki>")
         return
     }
 
@@ -106,7 +106,7 @@ bot.on(Events.MessageCreate, async (message) => {
 
         api.then(async (res) => {
             if (!res.ok) {
-                message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```\nCheck the console for more info.")
+                await message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```\nCheck the console for more info.")
                 console.error(api)
                 return
             }
@@ -131,7 +131,7 @@ bot.on(Events.MessageCreate, async (message) => {
             const response: Response = await res.json()
 
             if (!response) {
-                message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```")
+                await message.reply("Something went wrong. Please try again later.\nDebug info:\n```Got status code from API: " + res.status + "```")
                 return
             }
 
@@ -174,13 +174,13 @@ bot.on(Events.MessageCreate, async (message) => {
             if (err instanceof nodefetch.FetchError) {
                 switch (err.code) {
                     case "ECONNREFUSED":
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Refused```")
+                        await balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Refused```")
                         break
                     case "ECONNRESET":
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Reset```")
+                        await balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```Connection Reset```")
                         break
                     default:
-                        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
+                        await balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
                 }
             }
         })
@@ -200,7 +200,7 @@ bot.on(Events.MessageCreate, async (message) => {
         })
 
     } catch (err: any) {
-        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
+        await balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
         console.error(err)
     }
 })
