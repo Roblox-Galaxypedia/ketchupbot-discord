@@ -3,47 +3,24 @@ dotenv.config()
 
 import { SapphireClient, Events } from "@sapphire/framework"
 import { GatewayIntentBits } from "discord.js"
-import * as ketchuplib from "./ketchupbot"
 import fetch from "node-fetch"
 import * as nodefetch from "node-fetch"
 //import * as cron from "node-cron"
 import * as Discord from "discord.js"
+import * as ketchuplib from "ketchupbot-updater"
 
 //const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const bot = new SapphireClient({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildWebhooks] })
-export const ketchupbot = new ketchuplib.ShipUpdater()
-
-async function logChange(name: string, revision: { revid: string | number } | null) {
-    await fetch(process.env.WEBHOOK!, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            content: `Updated **${name}**! ${(revision ? `([diff](<https://robloxgalaxy.wiki/index.php?title=${encodeURIComponent(name)}&diff=prev&oldid=${encodeURIComponent(revision.revid)}>))` : "")}`
-        })
-    })
-}
-
-async function logDiscord(content: unknown) {
-    await fetch(process.env.WEBHOOK!, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            content: typeof content === "string" ? content : JSON.stringify(content)
-        })
-    })
-}
+const { logChange, logDiscord } = ketchuplib.initLoggers()
+export let ketchupbot: any 
 
 bot.once(Events.ClientReady, async () => {
     console.log(`Logged in as ${bot.user!.tag}!`)
     bot.user?.setActivity("the upstream API", { type: Discord.ActivityType.Listening })
     const mwbot = await ketchuplib.initBot()
 
-    const updater = await ketchupbot.main(mwbot, logChange, logDiscord, true)
+    ketchupbot = new ketchuplib.ShipUpdater(mwbot, logChange, logDiscord)
 })
 
 // GalaxyGPT Module
