@@ -7,7 +7,7 @@ import fetch from "node-fetch"
 import * as nodefetch from "node-fetch"
 //import * as cron from "node-cron"
 import * as Discord from "discord.js"
-import * as ketchuplib from "ketchupbot-updater"
+import * as ketchuplib from "@smallketchup82/ketchupbot-updater"
 
 //const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
