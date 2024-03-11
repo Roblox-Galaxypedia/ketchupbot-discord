@@ -22,6 +22,6 @@ export class PingCommand extends Command {
             const ping = Math.round(this.container.client.ws.ping)
             return interaction.editReply(`Pong 🏓! (Round trip took: ${diff}ms. Heartbeat: ${ping}ms.)`)
         }
-        return interaction.editReply("Failed to retrieve ping :(")
+        return await interaction.editReply("Failed to retrieve ping :(")
     }
 }

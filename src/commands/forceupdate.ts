@@ -15,7 +15,7 @@ export class SlashCommand extends Command {
 
     public override registerApplicationCommands(registry: Command.Registry) {
         registry.registerChatInputCommand((builder) =>
-            builder //
+            builder
                 .setName(this.name)
                 .setDescription(this.description)
                 .addStringOption((option) =>

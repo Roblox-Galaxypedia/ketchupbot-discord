@@ -4,7 +4,6 @@ dotenv.config()
 import { SapphireClient, Events } from "@sapphire/framework"
 import { GatewayIntentBits } from "discord.js"
 import * as ketchuplib from "./ketchupbot"
-import fetch from "node-fetch"
 //import * as cron from "node-cron"
 import * as Discord from "discord.js"
 import axios, { AxiosError } from "axios"
@@ -53,7 +52,7 @@ bot.on(Events.MessageCreate, async (message) => {
     // only run in the testing channel
     if (message.channel.id !== "1100079016372867122") {
         try {
-            message.delete()
+            await message.delete()
         } catch (e) {
             console.error(e)
         }
@@ -66,13 +65,13 @@ bot.on(Events.MessageCreate, async (message) => {
 
     // check if the prompt is too long
     if (prompt.length > 750) {
-        message.reply("Your question is too long! Please keep it under 500 characters.")
+        await message.reply("Your question is too long! Please keep it under 500 characters.")
         return
     }
 
     // check if the prompt is empty
     if (prompt === "") {
-        message.reply("Hello! I'm KetchupBot. The official Galaxypedia Assistant & Automatic Updater!\n\nUpdates ships every hour at XX:00\nUpdates turrets page every hour at XX:30\nMore information can be found here: <https://robloxgalaxy.wiki/wiki/User:Ketchupbot101>\n\nReport any unintended behaviour to Galaxypedia Head Staff immediately\n<https://discord.robloxgalaxy.wiki>")
+        await message.reply("Hello! I'm KetchupBot. The official Galaxypedia Assistant & Automatic Updater!\n\nUpdates ships every hour at XX:00\nUpdates turrets page every hour at XX:30\nMore information can be found here: <https://robloxgalaxy.wiki/wiki/User:Ketchupbot101>\n\nReport any unintended behaviour to Galaxypedia Head Staff immediately\n<https://discord.robloxgalaxy.wiki>")
         return
     }
 
@@ -191,7 +190,7 @@ bot.on(Events.MessageCreate, async (message) => {
         })
 
     } catch (err: any) {
-        balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
+        await balling.edit("Something went wrong. Please try again later.\nDebug Info:\n```" + err.message + "```")
         console.error(err)
     }
 })

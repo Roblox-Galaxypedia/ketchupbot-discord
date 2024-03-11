@@ -22,9 +22,8 @@ export class RulesCommand extends Command {
     }
 
     public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const shouldpublish = interaction.options.getBoolean("publish")!
+        const shouldpublish = interaction.options.getBoolean("publish")
         await interaction.deferReply({ ephemeral: true })
-
 
         const embed = new Discord.EmbedBuilder()
             .setColor("#000000")
@@ -35,7 +34,7 @@ export class RulesCommand extends Command {
             .setFooter({ text: "Galaxypedia staff reserve the right to change these rules at any point in time | Do not try to find loopholes" })
 
     
-        if (shouldpublish === true && interaction.member!.permissions instanceof Discord.PermissionsBitField && interaction.member!.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
+        if (shouldpublish && interaction.member!.permissions instanceof Discord.PermissionsBitField && interaction.member!.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
             const channel = await (await interaction.client.guilds.fetch("913914198344482846")).channels.fetch("913918133268545597")
 
             try {

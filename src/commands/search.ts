@@ -31,7 +31,6 @@ export class SearchCommand extends Command {
 
         const firstrow = new Discord.ActionRowBuilder<Discord.ModalActionRowComponentBuilder>().addComponents(queryinput)
         
-        
         modal.addComponents(firstrow)
 
         await interaction.showModal(modal)
@@ -64,9 +63,9 @@ export class SearchCommand extends Command {
 
             await interaction.editReply({ embeds: [searchresults] })
         })
-        .catch(error => {
+        .catch(async error => {
             console.error(error)
-            interaction.editReply("An error occured while trying to search the Galaxypedia!")   
+            await interaction.editReply("An error occured while trying to search the Galaxypedia!")   
         })
         
     }
