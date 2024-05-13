@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@sapphire/framework": "^4.8.5",
+    "@sapphire/framework": "^5.2.1",
     "@types/node-cron": "^3.0.11",
     "@types/node-fetch": "^2.6.9",
     "chalk": "^4.1.2",
