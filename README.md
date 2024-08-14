@@ -1,1 +1,0 @@
-# ketchupbot-discord

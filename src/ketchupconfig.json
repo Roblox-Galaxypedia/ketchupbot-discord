@@ -1,9 +1,0 @@
-{
-    "parameters_to_exempt": [
-        "damage_res"
-    ],
-    "SHIP_NAME_MAP": {
-        "2018": "2018 Ship",
-        "yname": "Yname (ship)"
-    }
-}
