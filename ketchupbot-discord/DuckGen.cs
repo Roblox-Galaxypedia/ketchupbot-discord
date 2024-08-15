@@ -9,7 +9,7 @@ namespace ketchupbot_discord;
 
 public static class DuckGen
 {
-    private static readonly HttpClient _httpClient = new();
+    private static readonly HttpClient HttpClient = new();
 
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client)
     {
@@ -44,13 +44,19 @@ public static class DuckGen
 
         try
         {
-            dynamic apiResponse = await GetApiResponse(message, messageContent);
+            ApiResponse? apiResponse = await GetApiResponse(message, messageContent);
 
-            var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.context));
+            if (apiResponse == null)
+                throw new InvalidOperationException("Failed to get a response from the API");
 
+            if (apiResponse.Context != null)
+            {
+                var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.Context));
 
-
-
+                await message.Channel.SendFileAsync(contextStream, "context.txt", apiResponse.Answer, messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
+            } else {
+                await message.ReplyAsync(apiResponse.Answer, allowedMentions: AllowedMentions.None);
+            }
         }
         catch (Exception e)
         {
@@ -63,7 +69,7 @@ public static class DuckGen
         }
     }
 
-    private static async Task<dynamic> GetApiResponse(SocketUserMessage message, string messageContent)
+    private static async Task<ApiResponse?> GetApiResponse(SocketUserMessage message, string messageContent)
     {
             using StringContent jsonContent = new(
                 JsonSerializer.Serialize(new
@@ -73,7 +79,7 @@ public static class DuckGen
                 }), Encoding.UTF8, "application/json");
 
             using HttpResponseMessage response =
-                await _httpClient.PostAsync(Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", jsonContent);
+                await HttpClient.PostAsync(Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", jsonContent);
 
             response.EnsureSuccessStatusCode();
 
@@ -82,7 +88,10 @@ public static class DuckGen
             Console.WriteLine(responseContent);
 
             // I'm going to use a dynamic here because I'm procrastinating on creating a model for the response
-            dynamic? responseJson = JsonSerializer.Deserialize<ApiResponse>(responseContent);
+            var responseJson = JsonSerializer.Deserialize<ApiResponse>(responseContent, new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
             return responseJson ?? throw new InvalidOperationException("Failed to deserialize response from API");
     }
