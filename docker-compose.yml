@@ -1,0 +1,6 @@
+﻿services:
+  ketchupbot-discord:
+    image: ketchupbot-discord
+    build:
+      context: .
+      dockerfile: ketchupbot-discord/Dockerfile

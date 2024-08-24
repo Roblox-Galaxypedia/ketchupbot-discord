@@ -2,13 +2,19 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 
 namespace ketchupbot_discord;
 
-public static class Program
+public class Program
 {
     private static DiscordSocketClient _client = null!;
     private static InteractionService _interactionService = null!;
+    private static readonly IConfigurationRoot Configuration = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: true, true)
+        .AddEnvironmentVariables()
+        .AddUserSecrets<Program>()
+        .Build();
 
     public static async Task Main()
     {
@@ -24,7 +30,7 @@ public static class Program
             await _interactionService.ExecuteCommandAsync(new SocketInteractionContext(_client, interaction), null);
         #endregion
 
-        await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_TOKEN"));
+        await _client.LoginAsync(TokenType.Bot, Configuration["DISCORD_TOKEN"]);
         await _client.StartAsync();
 
         await _interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), null);
@@ -43,7 +49,7 @@ public static class Program
         await _client.SetActivityAsync(new Game("the upstream API", ActivityType.Watching));
 
 #if DEBUG
-        await _interactionService.RegisterCommandsToGuildAsync(ulong.Parse(Environment.GetEnvironmentVariable("TEST_GUILD_ID") ?? throw new InvalidOperationException()));
+        await _interactionService.RegisterCommandsToGuildAsync(ulong.Parse(Configuration["TEST_GUILD_ID"] ?? throw new InvalidOperationException()));
 #else
         await _interactionService.RegisterCommandsGloballyAsync();
 #endif
