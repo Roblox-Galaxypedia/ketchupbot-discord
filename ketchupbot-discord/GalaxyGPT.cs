@@ -51,13 +51,19 @@ public static class GalaxyGpt
             if (apiResponse == null)
                 throw new InvalidOperationException("Failed to get a response from the API");
 
+            string tokensMessage = "";
+            if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens) && int.TryParse(apiResponse.ResponseTokens, out var responseTokens))
+            {
+                tokensMessage = $"\n\nQuestion Tokens: {questionTokens}\nResponse Tokens: {responseTokens}";
+            }
+
             if (apiResponse.Context != null)
             {
                 var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.Context));
 
-                await message.Channel.SendFileAsync(contextStream, "context.txt", apiResponse.Answer, messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
+                await message.Channel.SendFileAsync(contextStream, "context.txt", apiResponse.Answer + tokensMessage, messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
             } else {
-                await message.ReplyAsync(apiResponse.Answer, allowedMentions: AllowedMentions.None);
+                await message.ReplyAsync(apiResponse.Answer + tokensMessage, allowedMentions: AllowedMentions.None);
             }
         }
         catch (Exception e)
@@ -103,7 +109,12 @@ public class ApiResponse
 {
     public required string Answer { get; init; }
     public string? Context { get; init; }
-    public Dictionary<string, string>? Tokens { get; init; }
+    
+    [JsonPropertyName("question_tokens")]
+    public string? QuestionTokens { get; init; }
+    
+    [JsonPropertyName("response_tokens")]
+    public string? ResponseTokens { get; init; }
 
     [JsonPropertyName("embeddings_usage")]
     public Dictionary<string, string>? EmbeddingsUsage { get; init; }
