@@ -7,13 +7,15 @@ using Discord.WebSocket;
 
 namespace ketchupbot_discord;
 
-public static class DuckGen
+public static class GalaxyGpt
 {
     private static readonly HttpClient HttpClient = new();
 
-    public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client)
+    public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
         if (messageParam is not SocketUserMessage message || message.Author.IsBot) return;
+
+        if (allowedChannels != null && !allowedChannels.Contains(message.Channel.Id)) return;
 
         if (message.Content.Trim() == client.CurrentUser.Mention)
         {

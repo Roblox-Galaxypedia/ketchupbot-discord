@@ -1,6 +1,10 @@
 ﻿services:
   ketchupbot-discord:
     image: ketchupbot-discord
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: ketchupbot-discord/Dockerfile

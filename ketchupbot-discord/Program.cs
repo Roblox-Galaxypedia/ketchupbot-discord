@@ -66,7 +66,7 @@ public class Program
         if (message.Channel.Id == 1271312954356138025) await message.CrosspostAsync();
     }
 
-    // Run the DuckGen handler in a separate thread to prevent blocking the main thread
+    // Run the GalaxyGPT handler in a separate thread to prevent blocking the main thread
     private static async Task DuckGenHandler(SocketMessage messageParam) =>
-        await Task.Run(async () => await DuckGen.HandleMessage(messageParam, _client));
+        await Task.Run(async () => await GalaxyGpt.HandleMessage(messageParam, _client, Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray()));
 }
