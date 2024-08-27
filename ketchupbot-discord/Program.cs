@@ -18,7 +18,10 @@ public class Program
 
     public static async Task Main()
     {
-        _client = new DiscordSocketClient();
+        _client = new DiscordSocketClient(new DiscordSocketConfig
+        {
+            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent) & ~(GatewayIntents.GuildScheduledEvents | GatewayIntents.GuildInvites)
+        });
         _interactionService = new InteractionService(_client.Rest);
 
         #region Event Handlers
@@ -67,6 +70,10 @@ public class Program
     }
 
     // Run the GalaxyGPT handler in a separate thread to prevent blocking the main thread
-    private static async Task DuckGenHandler(SocketMessage messageParam) =>
-        await Task.Run(async () => await GalaxyGpt.HandleMessage(messageParam, _client, Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray()));
+    private static Task DuckGenHandler(SocketMessage messageParam)
+    {
+        _ = Task.Run(async () => await GalaxyGpt.HandleMessage(messageParam, _client,
+            Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray()));
+        return Task.CompletedTask;
+    }
 }
