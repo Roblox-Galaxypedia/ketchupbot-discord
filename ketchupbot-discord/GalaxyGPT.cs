@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,6 +11,11 @@ namespace ketchupbot_discord;
 public static class GalaxyGpt
 {
     private static readonly HttpClient HttpClient = new();
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
@@ -51,19 +57,27 @@ public static class GalaxyGpt
             if (apiResponse == null)
                 throw new InvalidOperationException("Failed to get a response from the API");
 
-            string tokensMessage = "";
-            if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens) && int.TryParse(apiResponse.ResponseTokens, out var responseTokens))
-            {
-                tokensMessage = $"\n\nQuestion Tokens: {questionTokens}\nResponse Tokens: {responseTokens}";
-            }
+            var answerMessage = new StringBuilder();
 
-            if (apiResponse.Context != null)
-            {
-                var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.Context));
+            const int maxResponseLength = 1900;
+            if (apiResponse.Answer.Length > maxResponseLength)
+                answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, maxResponseLength)] + " (truncated)");
+            else
+                answerMessage.AppendLine(apiResponse.Answer);
 
-                await message.Channel.SendFileAsync(contextStream, "context.txt", apiResponse.Answer + tokensMessage, messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
+            if (apiResponse.Duration != null) answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+            
+            if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens)) answerMessage.AppendLine($"Question Tokens: {questionTokens}");
+            if (int.TryParse(apiResponse.ResponseTokens, out var responseTokens)) answerMessage.AppendLine($"Response Tokens: {responseTokens}");
+            if (questionTokens == 0 && responseTokens == 0) answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
+
+            if (!string.IsNullOrWhiteSpace(apiResponse.Context))
+            {
+                using var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.Context));
+
+                await message.Channel.SendFileAsync(contextStream, "context.txt", answerMessage.ToString(), messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
             } else {
-                await message.ReplyAsync(apiResponse.Answer + tokensMessage, allowedMentions: AllowedMentions.None);
+                await message.ReplyAsync(answerMessage.ToString(), allowedMentions: AllowedMentions.None);
             }
         }
         catch (Exception e)
@@ -79,27 +93,28 @@ public static class GalaxyGpt
 
     private static async Task<ApiResponse?> GetApiResponse(SocketUserMessage message, string messageContent)
     {
-            using StringContent jsonContent = new(
-                JsonSerializer.Serialize(new
-                {
-                    prompt = messageContent,
-                    username = message.Author.Username
-                }), Encoding.UTF8, "application/json");
 
             using HttpResponseMessage response =
-                await HttpClient.PostAsync(Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", jsonContent);
+                await HttpClient.PostAsJsonAsync(Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", new
+                {
+                    prompt = messageContent,
+                    username = message.Author.Username,
+                    maxlength = 500
+                });
 
             response.EnsureSuccessStatusCode();
 
-            string responseContent = await response.Content.ReadAsStringAsync();
+            await using Stream responseContent = await response.Content.ReadAsStreamAsync();
 
-            Console.WriteLine(responseContent);
-
-            // I'm going to use a dynamic here because I'm procrastinating on creating a model for the response
-            var responseJson = JsonSerializer.Deserialize<ApiResponse>(responseContent, new JsonSerializerOptions()
+            // Log the response content on a separate thread to prevent blocking the main thread
+            await Task.Run(() =>
             {
-                PropertyNameCaseInsensitive = true
+                StreamReader reader = new(responseContent);
+                Console.WriteLine(reader.ReadToEnd());
+                responseContent.Seek(0, SeekOrigin.Begin);
             });
+
+            var responseJson = await JsonSerializer.DeserializeAsync<ApiResponse>(responseContent, JsonSerializerOptions);
 
             return responseJson ?? throw new InvalidOperationException("Failed to deserialize response from API");
     }
@@ -116,11 +131,16 @@ public class ApiResponse
     [JsonPropertyName("response_tokens")]
     public string? ResponseTokens { get; init; }
 
-    [JsonPropertyName("embeddings_usage")]
-    public Dictionary<string, string>? EmbeddingsUsage { get; init; }
+    // The following fields are not used in the Discord bot so they are commented out
+    // public Dictionary<string, string>? Tokens { get; init; }
+
+    // [JsonPropertyName("embeddings_usage")]
+    // public Dictionary<string, string>? EmbeddingsUsage { get; init; }
 
     [JsonPropertyName("stop_reason")]
     public string? StopReason { get; init; }
+
+    public string? Duration { get; init; }
 
     public string? Dataset { get; init; }
     public required string Version { get; init; }
