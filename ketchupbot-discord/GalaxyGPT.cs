@@ -65,6 +65,10 @@ public static class GalaxyGpt
             else
                 answerMessage.AppendLine(apiResponse.Answer);
 
+            if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens)) answerMessage.AppendLine($"Question Tokens: {questionTokens}");
+            if (int.TryParse(apiResponse.ResponseTokens, out var responseTokens)) answerMessage.AppendLine($"Response Tokens: {responseTokens}");
+            if (questionTokens == 0 && responseTokens == 0) answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
+            
             if (apiResponse.Duration != null) answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
 
             if (!string.IsNullOrWhiteSpace(apiResponse.Context))
@@ -120,6 +124,12 @@ public class ApiResponse
 {
     public required string Answer { get; init; }
     public string? Context { get; init; }
+    
+    [JsonPropertyName("question_tokens")]
+    public string? QuestionTokens { get; init; }
+    
+    [JsonPropertyName("response_tokens")]
+    public string? ResponseTokens { get; init; }
 
     // The following fields are not used in the Discord bot so they are commented out
     // public Dictionary<string, string>? Tokens { get; init; }
