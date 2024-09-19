@@ -27,6 +27,7 @@ public class Program
         #region Event Handlers
         _client.Log += Log;
         _client.Ready += Ready;
+        _client.Ready += BlogTrackerHandler;
         _client.MessageReceived += AutoPublishAnnouncements;
         _client.MessageReceived += DuckGenHandler;
         _client.InteractionCreated += async interaction =>
@@ -66,7 +67,13 @@ public class Program
         // Check if the message is in the announcements channel
         if (message.Channel.GetChannelType() != ChannelType.News) return;
 
-        if (message.Channel.Id == 1271312954356138025) await message.CrosspostAsync();
+        List<ulong> allowedChannels =
+        [
+            956568339851931728,
+            956568339851931728
+        ];
+
+        if (allowedChannels.Contains(message.Channel.Id)) await message.CrosspostAsync();
     }
 
     // Run the GalaxyGPT handler in a separate thread to prevent blocking the main thread
@@ -74,6 +81,24 @@ public class Program
     {
         _ = Task.Run(async () => await GalaxyGpt.HandleMessage(messageParam, _client,
             Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray()));
+        return Task.CompletedTask;
+    }
+
+    private static Task BlogTrackerHandler()
+    {
+        _ = Task.Run(async () =>
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
+
+            while (await timer.WaitForNextTickAsync())
+            {
+                if (!BlogTracker.CheckForUpdates()) continue;
+
+                if (await _client.GetChannelAsync(913918135785111572) is not IMessageChannel channel) throw new InvalidOperationException("Channel not found");
+
+                await channel.SendMessageAsync($"@everyone New blog post!\n{BlogTracker.GetLatestPostUrl()}");
+            }
+        });
         return Task.CompletedTask;
     }
 }

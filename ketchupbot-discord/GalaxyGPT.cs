@@ -69,6 +69,12 @@ public static class GalaxyGpt
             if (int.TryParse(apiResponse.ResponseTokens, out var responseTokens)) answerMessage.AppendLine($"Response Tokens: {responseTokens}");
             if (questionTokens == 0 && responseTokens == 0) answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
             
+            if (messageContent.Contains("best", StringComparison.OrdinalIgnoreCase))
+            {
+                answerMessage.AppendLine();
+                answerMessage.AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
+            }
+
             if (apiResponse.Duration != null) answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
 
             if (!string.IsNullOrWhiteSpace(apiResponse.Context))
@@ -99,7 +105,8 @@ public static class GalaxyGpt
                 {
                     prompt = messageContent,
                     username = message.Author.Username,
-                    maxlength = 500
+                    maxlength = 500,
+                    maxcontextlength = 10
                 });
 
             response.EnsureSuccessStatusCode();

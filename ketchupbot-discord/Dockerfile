@@ -1,4 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+RUN apt update -y && apt install python3 -y
+RUN apt install -y python3-pip
+RUN pip3 install rembg[cli] --break-system-packages
 USER $APP_UID
 WORKDIR /app
 
@@ -18,4 +21,5 @@ RUN dotnet publish "ketchupbot-discord.csproj" -c $BUILD_CONFIGURATION -o /app/p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "ketchupbot-discord.dll"]
