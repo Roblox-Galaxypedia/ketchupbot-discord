@@ -1,7 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 RUN apt update -y && apt install python3 -y
 RUN apt install -y python3-pip
-RUN pip3 install rembg[cli] --break-system-packages
+RUN pip3 install rembg[gpu,cli] --break-system-packages
 USER $APP_UID
 WORKDIR /app
 
