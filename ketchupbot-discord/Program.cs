@@ -18,6 +18,14 @@ public class Program
 
     public static async Task Main()
     {
+        SentrySdk.Init(options =>
+        {
+            options.Dsn = Configuration["SENTRY_DSN"] ?? "https://fe5889aff53840ff6e748fd2de1cf963@o4507833886834688.ingest.us.sentry.io/4507992345214976";
+            options.AutoSessionTracking = true;
+            options.TracesSampleRate = 1.0;
+            options.ProfilesSampleRate = 1.0;
+        });
+
         _client = new DiscordSocketClient(new DiscordSocketConfig
         {
             GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent) & ~(GatewayIntents.GuildScheduledEvents | GatewayIntents.GuildInvites)
