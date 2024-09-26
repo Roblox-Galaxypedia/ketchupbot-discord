@@ -1,8 +1,5 @@
-using System;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -13,10 +10,7 @@ public static class GalaxyGpt
 {
     private static readonly HttpClient HttpClient = new();
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
+    private const int MaxResponseLength = 1900;
 
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
@@ -53,46 +47,67 @@ public static class GalaxyGpt
 
         try
         {
-            ApiResponse? apiResponse = await GetApiResponse(message, messageContent);
+            ApiResponse apiResponse = await GetApiResponse(message, messageContent);
 
-            if (apiResponse == null)
-                throw new InvalidOperationException("Failed to get a response from the API");
+            // ReSharper disable once RedundantAssignment
+            bool verbose = false;
+#if DEBUG
+            verbose = true;
+#endif
+
+            if (messageContent.Contains("+v", StringComparison.OrdinalIgnoreCase))
+            {
+                verbose = true;
+                messageContent = messageContent.Replace("+v", "", StringComparison.OrdinalIgnoreCase).Trim();
+            }
 
             var answerMessage = new StringBuilder();
 
             if (messageContent.Contains("best", StringComparison.OrdinalIgnoreCase))
             {
-                answerMessage.AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
-                answerMessage.AppendLine();
+                answerMessage.AppendLine().AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
             }
-            
-            const int maxResponseLength = 1900;
-            if (apiResponse.Answer.Length > maxResponseLength)
-                answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, maxResponseLength)] + " (truncated)");
+
+            #region Response Answer
+
+            if (apiResponse.Answer.Length > MaxResponseLength)
+                answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, MaxResponseLength)] + " (truncated)");
             else
                 answerMessage.AppendLine(apiResponse.Answer);
 
-            if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens)) answerMessage.AppendLine($"Question Tokens: {questionTokens}");
-            if (int.TryParse(apiResponse.ResponseTokens, out var responseTokens)) answerMessage.AppendLine($"Response Tokens: {responseTokens}");
-            if (questionTokens != 0 && responseTokens != 0)
+            #endregion
+
+            #region Verbose Information
+
+            if (verbose)
             {
-                answerMessage.AppendLine();
-                answerMessage.AppendLine($"Cost: {Math.Round(questionTokens * 0.000015 + responseTokens * 0.00006, 7)} Cents");
-            }
-            if (apiResponse.Duration != null)
-            {
-                answerMessage.AppendLine();
-                answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+                if (int.TryParse(apiResponse.QuestionTokens, out int questionTokens))
+                    answerMessage.AppendLine($"Question Tokens: {questionTokens}");
+                if (int.TryParse(apiResponse.ResponseTokens, out int responseTokens))
+                    answerMessage.AppendLine($"Response Tokens: {responseTokens}");
+
+                // NOTE: These numbers are hardcoded and not necessarily representative of the actual costs, as the model can change
+                if (questionTokens != 0 && responseTokens != 0)
+                    answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
+
+                if (apiResponse.Duration != null)
+                    answerMessage.AppendLine(
+                        $"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
             }
 
-            if (!string.IsNullOrWhiteSpace(apiResponse.Context))
+            #endregion
+
+            #region Context Attacher and Message Sender
+
+            if (!string.IsNullOrWhiteSpace(apiResponse.Context) && verbose)
             {
                 using var contextStream = new MemoryStream(Encoding.UTF8.GetBytes(apiResponse.Context));
-
                 await message.Channel.SendFileAsync(contextStream, "context.txt", answerMessage.ToString(), messageReference: new MessageReference(message.Id), allowedMentions: AllowedMentions.None);
             } else {
                 await message.ReplyAsync(answerMessage.ToString(), allowedMentions: AllowedMentions.None);
             }
+
+            #endregion
         }
         catch (Exception e)
         {
@@ -105,11 +120,11 @@ public static class GalaxyGpt
         }
     }
 
-    private static async Task<ApiResponse?> GetApiResponse(SocketUserMessage message, string messageContent)
+    private static async Task<ApiResponse> GetApiResponse(SocketUserMessage message, string messageContent)
     {
-
-            using HttpResponseMessage response =
-                await HttpClient.PostAsJsonAsync(Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", new
+        using HttpResponseMessage response =
+            await HttpClient.PostAsJsonAsync(
+                Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", new
                 {
                     prompt = messageContent,
                     username = message.Author.Username,
@@ -117,47 +132,10 @@ public static class GalaxyGpt
                     maxcontextlength = 10
                 });
 
-            response.EnsureSuccessStatusCode();
+        response.EnsureSuccessStatusCode();
+        ApiResponse responseJson = await response.Content.ReadFromJsonAsync<ApiResponse>() ??
+                                   throw new InvalidOperationException("Failed to deserialize response from API");
 
-            await using Stream responseContent = await response.Content.ReadAsStreamAsync();
-
-            // Log the response content on a separate thread to prevent blocking the main thread
-            await Task.Run(() =>
-            {
-                StreamReader reader = new(responseContent);
-                Console.WriteLine(reader.ReadToEnd());
-                responseContent.Seek(0, SeekOrigin.Begin);
-            });
-
-            var responseJson = await JsonSerializer.DeserializeAsync<ApiResponse>(responseContent, JsonSerializerOptions);
-
-            return responseJson ?? throw new InvalidOperationException("Failed to deserialize response from API");
+        return responseJson;
     }
 }
-
-public class ApiResponse
-{
-    public required string Answer { get; init; }
-    public string? Context { get; init; }
-    
-    [JsonPropertyName("question_tokens")]
-    public string? QuestionTokens { get; init; }
-    
-    [JsonPropertyName("response_tokens")]
-    public string? ResponseTokens { get; init; }
-
-    // The following fields are not used in the Discord bot so they are commented out
-    // public Dictionary<string, string>? Tokens { get; init; }
-
-    // [JsonPropertyName("embeddings_usage")]
-    // public Dictionary<string, string>? EmbeddingsUsage { get; init; }
-
-    [JsonPropertyName("stop_reason")]
-    public string? StopReason { get; init; }
-
-    public string? Duration { get; init; }
-
-    public string? Dataset { get; init; }
-    public required string Version { get; init; }
-}
-
