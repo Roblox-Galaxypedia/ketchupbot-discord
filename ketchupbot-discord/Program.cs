@@ -104,7 +104,7 @@ public class Program
 
                 if (await _client.GetChannelAsync(913918135785111572) is not IMessageChannel channel) throw new InvalidOperationException("Channel not found");
 
-                await channel.SendMessageAsync($"@everyone New blog post!\n{BlogTracker.GetLatestPostUrl()}");
+                await channel.SendMessageAsync($"New blog post!\n{BlogTracker.GetLatestPostUrl()}");
             }
         });
         return Task.CompletedTask;
