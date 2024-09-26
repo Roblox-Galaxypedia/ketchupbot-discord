@@ -1,3 +1,4 @@
+using System
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -59,6 +60,12 @@ public static class GalaxyGpt
 
             var answerMessage = new StringBuilder();
 
+            if (messageContent.Contains("best", StringComparison.OrdinalIgnoreCase))
+            {
+                answerMessage.AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
+                answerMessage.AppendLine();
+            }
+            
             const int maxResponseLength = 1900;
             if (apiResponse.Answer.Length > maxResponseLength)
                 answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, maxResponseLength)] + " (truncated)");
@@ -67,15 +74,16 @@ public static class GalaxyGpt
 
             if (int.TryParse(apiResponse.QuestionTokens, out var questionTokens)) answerMessage.AppendLine($"Question Tokens: {questionTokens}");
             if (int.TryParse(apiResponse.ResponseTokens, out var responseTokens)) answerMessage.AppendLine($"Response Tokens: {responseTokens}");
-            if (questionTokens != 0 && responseTokens != 0) answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
-            
-            if (messageContent.Contains("best", StringComparison.OrdinalIgnoreCase))
+            if (questionTokens != 0 && responseTokens != 0)
             {
                 answerMessage.AppendLine();
-                answerMessage.AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
+                answerMessage.AppendLine($"Cost: {Math.Round(questionTokens * 0.000015 + responseTokens * 0.00006, 7)} Cents");
             }
-
-            if (apiResponse.Duration != null) answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+            if (apiResponse.Duration != null)
+            {
+                answerMessage.AppendLine();
+                answerMessage.AppendLine($"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+            }
 
             if (!string.IsNullOrWhiteSpace(apiResponse.Context))
             {
