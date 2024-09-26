@@ -88,7 +88,7 @@ public static class GalaxyGpt
 
                 // NOTE: These numbers are hardcoded and not necessarily representative of the actual costs, as the model can change
                 if (questionTokens != 0 && responseTokens != 0)
-                    answerMessage.AppendLine($"Cost: ${questionTokens * 0.00000015 + responseTokens * 0.0000006}");
+                    answerMessage.AppendLine($"Cost: ${Math.Round(questionTokens * 0.00000015 + responseTokens * 0.0000006, 10)}");
 
                 if (apiResponse.Duration != null)
                     answerMessage.AppendLine(
