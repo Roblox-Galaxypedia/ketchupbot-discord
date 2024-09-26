@@ -1,6 +1,6 @@
 ﻿services:
   ketchupbot-discord:
-    image: ketchupbot-discord
+    image: ghcr.io/galaxypedia-wiki/ketchupbot-discord:main
     restart: unless-stopped
     network_mode: host
     env_file:
