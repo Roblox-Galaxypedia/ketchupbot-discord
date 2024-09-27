@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -18,78 +20,14 @@ public static class GalaxyGpt
 
         if (allowedChannels != null && !allowedChannels.Contains(message.Channel.Id)) return;
 
-        if (message.Type == MessageType.Reply && message.ReferencedMessage.Author == client.CurrentUser)
+        if (message.Type == MessageType.Reply && message.ReferencedMessage.Author.Id == client.CurrentUser.Id)
         {
-            // The message is a reply to the bot. Let's start by adding the message to the list, and setting the bot's message as the current message in the chain to process
-            var messages = new List<IUserMessage> { message };
-            IUserMessage messageToProcess = message.ReferencedMessage;
+            IDisposable? typing = message.Channel.EnterTypingState();
+            JsonNode? finalResponse = await HandleConversation(client, message);
 
-            while (true)
-            {
-                // Find messages that are the user replying to the bot, or the bot replying to the user
-                if (messageToProcess.Type == MessageType.Reply)
-                {
-                    // Message is a reply to another message
+            await message.ReplyAsync(finalResponse?["message"]?.ToString());
 
-                    if (messageToProcess.ReferencedMessage.Author == client.CurrentUser)
-                    {
-                        // The message is a reply to the bot, add it to the list and set the replied message as the current message in the chain
-                        messages.Add(messageToProcess);
-                        messageToProcess = messageToProcess.ReferencedMessage;
-                        continue;
-                    }
-
-                    if (messageToProcess.ReferencedMessage.Author == message.Author)
-                    {
-                        // The message is a reply to the user, add it to the list and set the replied message as the current message in the chain
-                        messages.Add(messageToProcess);
-                        messageToProcess = messageToProcess.ReferencedMessage;
-                        continue;
-                    }
-                }
-
-                // The message is not a reply to the bot, and is not a reply to the user. This is the end of the chain
-                messages.Add(messageToProcess);
-                break;
-            }
-
-            messages.Reverse();
-
-            // I can't be bothered to create a class for this so we're gonna be using dictionaries
-            var messagesFormatted = new List<Dictionary<string, string>>();
-
-            foreach (IUserMessage userMessage in messages)
-            {
-                if (userMessage.Author == client.CurrentUser)
-                {
-                    messagesFormatted.Add(new Dictionary<string, string>()
-                    {
-                        { "role", "assistant" },
-                        { "message", userMessage.Content }
-                    });
-                }
-                else if (userMessage.Author == message.Author)
-                {
-                    messagesFormatted.Add(new Dictionary<string, string>()
-                    {
-                        { "role", "user" },
-                        { "message", userMessage.Content }
-                    });
-                }
-                else
-                {
-                    throw new InvalidOperationException("what the fuck is this?");
-                }
-            }
-
-            using HttpResponseMessage response =
-                await HttpClient.PostAsJsonAsync(
-                    "http://localhost:3636/api/v1/completeChat", new
-                    {
-                        conversation = messagesFormatted,
-                        username = message.Author.Username
-                    });
-
+            typing.Dispose();
             return;
         }
 
@@ -195,10 +133,96 @@ public static class GalaxyGpt
         }
     }
 
+    private static async Task<JsonNode?> HandleConversation(DiscordSocketClient client, SocketUserMessage message)
+    {
+        // The message is a reply to the bot. Let's start by adding the message to the list, and setting the bot's message as the current message in the chain to process
+        var messages = new List<IUserMessage> { message };
+        IUserMessage messageToProcess = message.ReferencedMessage;
+
+        while (true)
+        {
+            // Fetch the full message data from the API
+            messageToProcess = await message.Channel.GetMessageAsync(messageToProcess.Id) as IUserMessage ?? throw new InvalidOperationException();
+
+            // Find messages that are the user replying to the bot, or the bot replying to the user
+            if (messageToProcess.Type == MessageType.Reply)
+            {
+                // Message is a reply to another message
+
+                if (messageToProcess.ReferencedMessage.Author.Id == client.CurrentUser.Id)
+                {
+                    // The message is a reply to the bot, add it to the list and set the replied message as the current message in the chain
+                    messages.Add(messageToProcess);
+                    messageToProcess = messageToProcess.ReferencedMessage;
+                    continue;
+                }
+
+                if (messageToProcess.ReferencedMessage.Author.Id == message.Author.Id)
+                {
+                    // The message is a reply to the user, add it to the list and set the replied message as the current message in the chain
+                    messages.Add(messageToProcess);
+                    messageToProcess = messageToProcess.ReferencedMessage;
+                    continue;
+                }
+            }
+
+            // The message is not a reply to the bot, and is not a reply to the user. This is the end of the chain
+            messages.Add(messageToProcess);
+            break;
+        }
+
+        messages.Reverse();
+
+        // I can't be bothered to create a class for this so we're gonna be using dictionaries
+        var messagesFormatted = new List<Dictionary<string, string>>();
+
+        foreach (IUserMessage userMessage in messages)
+        {
+            if (userMessage.Author.Id == client.CurrentUser.Id)
+            {
+                messagesFormatted.Add(new Dictionary<string, string>()
+                {
+                    { "role", "assistant" },
+                    { "message", userMessage.Content }
+                });
+            }
+            else if (userMessage.Author.Id == message.Author.Id)
+            {
+                messagesFormatted.Add(new Dictionary<string, string>()
+                {
+                    { "role", "user" },
+                    { "message", userMessage.Content }
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException("what the fuck is this?");
+            }
+        }
+
+        using HttpResponseMessage response =
+            await HttpClient.PostAsJsonAsync(
+                "http://localhost:3636/api/v1/completeChat", new
+                {
+                    conversation = messagesFormatted,
+                    username = message.Author.Username
+                });
+
+        response.EnsureSuccessStatusCode();
+
+        Stream content = await response.Content.ReadAsStreamAsync();
+
+        JsonNode jsonResponse = await JsonSerializer.DeserializeAsync<JsonNode>(content) ?? throw new InvalidOperationException();
+
+        JsonNode? finalResponse = jsonResponse["conversation"]!.AsArray().Last(m => m?["role"]?.ToString() == "assistant");
+        return finalResponse;
+    }
+
     private static async Task<ApiResponse> GetApiResponse(SocketUserMessage message, string messageContent)
     {
         using HttpResponseMessage response =
             await HttpClient.PostAsJsonAsync(
+                // TODO: This environment variable should be the base url, not the full url
                 Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", new
                 {
                     prompt = messageContent,
