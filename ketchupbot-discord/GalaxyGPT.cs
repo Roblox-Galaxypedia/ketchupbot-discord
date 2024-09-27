@@ -23,11 +23,20 @@ public static class GalaxyGpt
         if (message.Type == MessageType.Reply && message.ReferencedMessage.Author.Id == client.CurrentUser.Id)
         {
             IDisposable? typing = message.Channel.EnterTypingState();
-            JsonNode? finalResponse = await HandleConversation(client, message);
+            try
+            {
+                JsonNode? finalResponse = await HandleConversation(client, message);
+                await message.ReplyAsync(finalResponse?["message"]?.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                typing.Dispose();
+            }
 
-            await message.ReplyAsync(finalResponse?["message"]?.ToString());
-
-            typing.Dispose();
             return;
         }
 
