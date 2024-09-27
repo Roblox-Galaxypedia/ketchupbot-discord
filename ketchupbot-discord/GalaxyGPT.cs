@@ -20,7 +20,7 @@ public static class GalaxyGpt
 
         if (allowedChannels != null && !allowedChannels.Contains(message.Channel.Id)) return;
 
-        if (message.Type == MessageType.Reply && message.ReferencedMessage.Author.Id == client.CurrentUser.Id)
+        if (message.Type == MessageType.Reply && message.ReferencedMessage.Author.Id == client.CurrentUser.Id && message.ReferencedMessage.ReferencedMessage.Author.Id == message.Author.Id)
         {
             IDisposable? typing = message.Channel.EnterTypingState();
             try
