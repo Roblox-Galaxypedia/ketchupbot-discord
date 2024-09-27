@@ -20,6 +20,8 @@ public static class GalaxyGpt
 
         if (allowedChannels != null && !allowedChannels.Contains(message.Channel.Id)) return;
 
+        #region Conversation
+
         if (!string.IsNullOrWhiteSpace(message.Content) && message.Type == MessageType.Reply &&
             message.ReferencedMessage.Author.Id == client.CurrentUser.Id &&
             message.ReferencedMessage.ReferencedMessage.Author.Id == message.Author.Id)
@@ -41,6 +43,8 @@ public static class GalaxyGpt
 
             return;
         }
+
+        #endregion
 
         if (message.Content.Trim() == client.CurrentUser.Mention)
         {
