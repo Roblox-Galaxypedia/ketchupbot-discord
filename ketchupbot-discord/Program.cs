@@ -87,8 +87,17 @@ public class Program
     // Run the GalaxyGPT handler in a separate thread to prevent blocking the main thread
     private static Task DuckGenHandler(SocketMessage messageParam)
     {
-        _ = Task.Run(async () => await GalaxyGpt.HandleMessage(messageParam, _client,
-            Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray()));
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await GalaxyGpt.HandleMessage(messageParam, _client,
+                    Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray());
+            } catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        });
         return Task.CompletedTask;
     }
 

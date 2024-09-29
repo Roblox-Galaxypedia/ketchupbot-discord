@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 
 namespace ketchupbot_discord;
@@ -23,9 +24,16 @@ public static class GalaxyGpt
         #region Conversation
 
         if (!string.IsNullOrWhiteSpace(message.Content) && message.Type == MessageType.Reply &&
-            message.ReferencedMessage.Author.Id == client.CurrentUser.Id &&
-            message.ReferencedMessage.ReferencedMessage.Author.Id == message.Author.Id)
+            message.ReferencedMessage.Author.Id == client.CurrentUser.Id)
         {
+
+            // Grab the message that the user is replying to, and the message that message is replying to, and check if it was sent by the user
+            IMessage? replymessage = await message.Channel.GetMessageAsync(message.ReferencedMessage.Id);
+            IMessage? replyrepliedto = await message.Channel.GetMessageAsync(((RestUserMessage)replymessage).ReferencedMessage.Id);
+
+            if (replyrepliedto != null && replyrepliedto.Author.Id != message.Author.Id)
+                return;
+
             IDisposable? typing = message.Channel.EnterTypingState();
             try
             {
