@@ -15,7 +15,7 @@ public static class GalaxyGpt
 {
     private static readonly HttpClient HttpClient = new();
 
-    private const int MaxResponseLength = 1900;
+    private const int MaxResponseLength = 1800;
 
     // Use port 6363 for development and 3636 for production
 #if !DEBUG
@@ -109,9 +109,20 @@ public static class GalaxyGpt
 
             var answerMessage = new StringBuilder();
 
-            if (messageContent.Contains("best", StringComparison.OrdinalIgnoreCase))
+            List<string> wordstoshowwarning =
+            [
+                "best", "worst", "greatest", "strongest", "weakest", "most", "least", "biggest", "smallest", "fastest",
+                "slowest", "most popular", "least popular", "most used", "least used", "most common", "least common",
+                "most effective", "least effective", "most efficient", "least efficient", "most expensive",
+                "least expensive", "most powerful", "least powerful", "most versatile", "least versatile",
+                "most durable", "least durable", "most reliable", "least reliable", "most accurate", "least accurate"
+            ];
+            if (wordstoshowwarning.Any(word => messageContent.Contains(word, StringComparison.OrdinalIgnoreCase)))
             {
-                answerMessage.AppendLine().AppendLine("""**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?" """);
+                answerMessage.AppendLine()
+                    .AppendLine(
+                        """**Warning:** These kinds of questions have a high likelihood of being answered incorrectly. Please be more specific and avoid ambiguous questions like "what is the best super capital?", "what ship has the most shield?", etc.""")
+                    .AppendLine();
             }
 
             #region Response Answer
