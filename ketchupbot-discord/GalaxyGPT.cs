@@ -15,6 +15,8 @@ public static class GalaxyGpt
 
     private const int MaxResponseLength = 1900;
 
+    private static readonly string Baseurl = Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:6363";
+
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
         if (messageParam is not SocketUserMessage message || message.Author.IsBot) return;
@@ -225,7 +227,7 @@ public static class GalaxyGpt
 
         using HttpResponseMessage response =
             await HttpClient.PostAsJsonAsync(
-                "http://localhost:3636/api/v1/completeChat", new
+                $"{Baseurl}/api/v1/completeChat", new
                 {
                     conversation = messagesFormatted,
                     username = message.Author.Username
@@ -246,7 +248,7 @@ public static class GalaxyGpt
         using HttpResponseMessage response =
             await HttpClient.PostAsJsonAsync(
                 // TODO: This environment variable should be the base url, not the full url
-                Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636/api/v1/ask", new
+                $"{Baseurl}/api/v1/ask", new
                 {
                     prompt = messageContent,
                     username = message.Author.Username,
