@@ -174,7 +174,7 @@ public static class GalaxyGpt
         {
             // If the status code is not 400, rethrow the exception
             if (e.StatusCode != HttpStatusCode.BadRequest) throw;
-            await message.ReplyAsync("So, you got moderated. Oh well. Blame OpenAI");
+            await message.ReplyAsync("https://tenor.com/view/job-job-application-jobless-gif-2757097081210871087");
         }
         catch (Exception e)
         {
