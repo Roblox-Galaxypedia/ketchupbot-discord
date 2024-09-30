@@ -15,7 +15,12 @@ public static class GalaxyGpt
 
     private const int MaxResponseLength = 1900;
 
+    // Use port 6363 for development and 3636 for production
+#if !DEBUG
+    private static readonly string Baseurl = Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:3636";
+#else
     private static readonly string Baseurl = Environment.GetEnvironmentVariable("GPTAPIURL") ?? "http://localhost:6363";
+#endif
 
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
