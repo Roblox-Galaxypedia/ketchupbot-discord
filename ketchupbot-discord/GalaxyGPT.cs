@@ -154,6 +154,12 @@ public static class GalaxyGpt
 
             #endregion
         }
+        catch (HttpRequestException e)
+        {
+            // If the status code is not 400, rethrow the exception
+            if (e.StatusCode != HttpStatusCode.BadRequest) throw;
+            await message.ReplyAsync("So, you got moderated. Oh well. Blame OpenAI");
+        }
         catch (Exception e)
         {
             Console.WriteLine(e);
