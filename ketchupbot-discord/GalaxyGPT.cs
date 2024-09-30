@@ -143,8 +143,7 @@ public static class GalaxyGpt
                 answerMessage.AppendLine($"Response Time as seen from Ketchupbot-Discord: {idk.ElapsedMilliseconds}ms (+API transport overhead -discord API overhead)");
             }
 
-            answerMessage.AppendLine("Ketchupbot-Discord Version: " + ThisAssembly.Git.Commit);
-            answerMessage.AppendLine("GalaxyGPT Version: " + apiResponse.Version);
+            answerMessage.AppendLine($"KBD Version: {ThisAssembly.Git.Commit} | GalaxyGPT Version: {apiResponse.Version}");
 
             #endregion
 
