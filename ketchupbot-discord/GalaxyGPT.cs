@@ -115,7 +115,7 @@ public static class GalaxyGpt
                 "slowest", "most popular", "least popular", "most used", "least used", "most common", "least common",
                 "most effective", "least effective", "most efficient", "least efficient", "most expensive",
                 "least expensive", "most powerful", "least powerful", "most versatile", "least versatile",
-                "most durable", "least durable", "most reliable", "least reliable", "most accurate", "least accurate"
+                "most durable", "least durable", "most reliable", "least reliable", "most accurate", "least accurate", "cheapest"
             ];
             if (wordstoshowwarning.Any(word => messageContent.Contains(word, StringComparison.OrdinalIgnoreCase)))
             {
