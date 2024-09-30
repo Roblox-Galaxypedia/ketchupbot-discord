@@ -125,9 +125,10 @@ public static class GalaxyGpt
 
             #region Verbose Information
 
+            answerMessage.AppendLine();
+
             if (verbose)
             {
-                answerMessage.AppendLine();
                 if (int.TryParse(apiResponse.QuestionTokens, out int questionTokens))
                     answerMessage.AppendLine($"Question Tokens: {questionTokens}");
                 if (int.TryParse(apiResponse.ResponseTokens, out int responseTokens))
@@ -140,10 +141,10 @@ public static class GalaxyGpt
                 if (apiResponse.Duration != null)
                     answerMessage.AppendLine($"Response Time as seen from GalaxyGPT: {apiResponse.Duration}ms (-API transport overhead)");
                 answerMessage.AppendLine($"Response Time as seen from Ketchupbot-Discord: {idk.ElapsedMilliseconds}ms (+API transport overhead -discord API overhead)");
-
-                answerMessage.AppendLine("Ketchupbot-Discord Version: " + ThisAssembly.Git.Commit);
-                answerMessage.AppendLine("GalaxyGPT Version: " + apiResponse.Version);
             }
+
+            answerMessage.AppendLine("Ketchupbot-Discord Version: " + ThisAssembly.Git.Commit);
+            answerMessage.AppendLine("GalaxyGPT Version: " + apiResponse.Version);
 
             #endregion
 
