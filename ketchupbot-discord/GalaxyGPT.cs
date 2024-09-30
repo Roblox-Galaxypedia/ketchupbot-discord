@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -24,6 +26,7 @@ public static class GalaxyGpt
 
     public static async Task HandleMessage(SocketMessage messageParam, DiscordSocketClient client, ulong[]? allowedChannels = null)
     {
+        var idk = Stopwatch.StartNew();
         if (messageParam is not SocketUserMessage message || message.Author.IsBot) return;
 
         if (allowedChannels != null && !allowedChannels.Contains(message.Channel.Id)) return;
@@ -124,6 +127,7 @@ public static class GalaxyGpt
 
             if (verbose)
             {
+                answerMessage.AppendLine();
                 if (int.TryParse(apiResponse.QuestionTokens, out int questionTokens))
                     answerMessage.AppendLine($"Question Tokens: {questionTokens}");
                 if (int.TryParse(apiResponse.ResponseTokens, out int responseTokens))
@@ -134,8 +138,9 @@ public static class GalaxyGpt
                     answerMessage.AppendLine($"Cost: ${Math.Round(questionTokens * 0.00000015 + responseTokens * 0.0000006, 10)}");
 
                 if (apiResponse.Duration != null)
-                    answerMessage.AppendLine(
-                        $"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+                    answerMessage.AppendLine($"Response Time as seen from GalaxyGPT: {apiResponse.Duration}ms (-API transport overhead)");
+                answerMessage.AppendLine($"Response Time as seen from Ketchupbot-Discord: {idk.ElapsedMilliseconds}ms (+API transport overhead -discord API overhead)");
+
                 answerMessage.AppendLine("Ketchupbot-Discord Version: " + ThisAssembly.Git.Commit);
                 answerMessage.AppendLine("GalaxyGPT Version: " + apiResponse.Version);
             }
