@@ -39,7 +39,7 @@ public class Program
         _client.Ready += Ready;
         _client.Ready += BlogTrackerHandler;
         _client.MessageReceived += AutoPublishAnnouncements;
-        _client.MessageReceived += DuckGenHandler;
+        _client.MessageReceived += GalaxyGptHandler;
         _client.InteractionCreated += async interaction =>
             await _interactionService.ExecuteCommandAsync(new SocketInteractionContext(_client, interaction), null);
         #endregion
@@ -87,7 +87,7 @@ public class Program
     }
 
     // Run the GalaxyGPT handler in a separate thread to prevent blocking the main thread
-    private static Task DuckGenHandler(SocketMessage messageParam)
+    private static Task GalaxyGptHandler(SocketMessage messageParam)
     {
         _ = Task.Run(async () =>
         {
