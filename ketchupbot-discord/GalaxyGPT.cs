@@ -136,6 +136,8 @@ public static class GalaxyGpt
                 if (apiResponse.Duration != null)
                     answerMessage.AppendLine(
                         $"Response Time: {apiResponse.Duration}ms (not including API transport overhead)");
+                answerMessage.AppendLine("Ketchupbot-Discord Version: " + ThisAssembly.Git.Commit);
+                answerMessage.AppendLine("GalaxyGPT Version: " + apiResponse.Version);
             }
 
             #endregion

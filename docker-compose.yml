@@ -8,6 +8,8 @@
     build:
       context: .
       dockerfile: ketchupbot-discord/Dockerfile
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     deploy:
       resources:
         reservations:

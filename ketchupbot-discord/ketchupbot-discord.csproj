@@ -10,8 +10,16 @@
         <UserSecretsId>e0f8d7cb-ddad-400d-9dc8-e7ea162db03e</UserSecretsId>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GitVersion>false</GitVersion>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Discord.Net" Version="3.16.0" />
+      <PackageReference Include="GitInfo" Version="3.3.5">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />

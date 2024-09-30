@@ -10,6 +10,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ketchupbot-discord/ketchupbot-discord.csproj", "ketchupbot-discord/"]
 RUN dotnet restore "ketchupbot-discord/ketchupbot-discord.csproj"
+COPY .git .git
 COPY . .
 WORKDIR "/src/ketchupbot-discord"
 RUN dotnet build "ketchupbot-discord.csproj" -c $BUILD_CONFIGURATION -o /app/build
