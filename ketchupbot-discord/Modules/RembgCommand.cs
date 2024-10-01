@@ -7,7 +7,15 @@ namespace ketchupbot_discord.Modules;
 public class RembgCommand : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("rembg", "Remove an images background")]
-    public async Task RembgAsync(IAttachment attachment, [Summary(description: "The model to use"), Choice("u2net", "u2net"), Choice("isnet", "isnet-general-use"), Choice("birefnet", "birefnet-general"), Choice("birefnet-dis", "birefnet-dis"), Choice("birefnet-hrsod", "birefnet-hrsod"), Choice("birefnet-cod", "birefnet-cod")] string model = "u2net")
+    public async Task RembgAsync(IAttachment attachment,
+        [Summary(description: "The model to use")]
+        [Choice("u2net", "u2net")]
+        [Choice("isnet", "isnet-general-use")]
+        [Choice("birefnet", "birefnet-general")]
+        [Choice("birefnet-dis", "birefnet-dis")]
+        [Choice("birefnet-hrsod", "birefnet-hrsod")]
+        [Choice("birefnet-cod", "birefnet-cod")]
+        string model = "u2net")
     {
         await DeferAsync();
         if (attachment.ContentType != "image/png" && attachment.ContentType != "image/jpeg")
@@ -15,6 +23,7 @@ public class RembgCommand : InteractionModuleBase<SocketInteractionContext>
             await FollowupAsync("Invalid file type. Please provide a PNG or JPEG image.");
             return;
         }
+
         string path = Path.Combine(Path.GetTempPath(), attachment.Filename);
         string ouputPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".png");
 

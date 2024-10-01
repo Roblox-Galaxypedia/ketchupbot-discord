@@ -10,8 +10,9 @@ public class Program
 {
     private static DiscordSocketClient _client = null!;
     private static InteractionService _interactionService = null!;
+
     private static readonly IConfigurationRoot Configuration = new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json", optional: true, true)
+        .AddJsonFile("appsettings.json", true, true)
         .AddEnvironmentVariables()
         .AddUserSecrets<Program>()
         .Build();
@@ -21,7 +22,8 @@ public class Program
 #if !DEBUG
         SentrySdk.Init(options =>
         {
-            options.Dsn = Configuration["SENTRY_DSN"] ?? "https://fe5889aff53840ff6e748fd2de1cf963@o4507833886834688.ingest.us.sentry.io/4507992345214976";
+            options.Dsn =
+ Configuration["SENTRY_DSN"] ?? "https://fe5889aff53840ff6e748fd2de1cf963@o4507833886834688.ingest.us.sentry.io/4507992345214976";
             options.AutoSessionTracking = true;
             options.TracesSampleRate = 1.0;
             options.ProfilesSampleRate = 1.0;
@@ -30,11 +32,13 @@ public class Program
 
         _client = new DiscordSocketClient(new DiscordSocketConfig
         {
-            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent) & ~(GatewayIntents.GuildScheduledEvents | GatewayIntents.GuildInvites)
+            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent) &
+                             ~(GatewayIntents.GuildScheduledEvents | GatewayIntents.GuildInvites)
         });
         _interactionService = new InteractionService(_client.Rest);
 
         #region Event Handlers
+
         _client.Log += Log;
         _client.Ready += Ready;
         _client.Ready += BlogTrackerHandler;
@@ -42,6 +46,7 @@ public class Program
         _client.MessageReceived += GalaxyGptHandler;
         _client.InteractionCreated += async interaction =>
             await _interactionService.ExecuteCommandAsync(new SocketInteractionContext(_client, interaction), null);
+
         #endregion
 
         await _client.LoginAsync(TokenType.Bot, Configuration["DISCORD_TOKEN"]);
@@ -63,7 +68,8 @@ public class Program
         await _client.SetActivityAsync(new Game("the upstream API", ActivityType.Watching));
 
 #if DEBUG
-        await _interactionService.RegisterCommandsToGuildAsync(ulong.Parse(Configuration["TEST_GUILD_ID"] ?? throw new InvalidOperationException()));
+        await _interactionService.RegisterCommandsToGuildAsync(ulong.Parse(Configuration["TEST_GUILD_ID"] ??
+                                                                           throw new InvalidOperationException()));
 #else
         await _interactionService.RegisterCommandsGloballyAsync();
 #endif
@@ -95,7 +101,8 @@ public class Program
             {
                 await GalaxyGpt.HandleMessage(messageParam, _client,
                     Configuration["ALLOWED_CHANNELS"]?.Split(",").Select(item => ulong.Parse(item.Trim())).ToArray());
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
@@ -113,7 +120,8 @@ public class Program
             {
                 if (!BlogTracker.CheckForUpdates()) continue;
 
-                if (await _client.GetChannelAsync(913918135785111572) is not IMessageChannel channel) throw new InvalidOperationException("Channel not found");
+                if (await _client.GetChannelAsync(913918135785111572) is not IMessageChannel channel)
+                    throw new InvalidOperationException("Channel not found");
 
                 await channel.SendMessageAsync($"New blog post!\n{BlogTracker.GetLatestPostUrl()}");
             }
