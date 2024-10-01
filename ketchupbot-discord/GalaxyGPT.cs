@@ -145,6 +145,8 @@ public static class GalaxyGpt
 
             if (verbose)
             {
+                if (int.TryParse(apiResponse.PromptTokens, out int promptTokens))
+                    answerMessage.AppendLine($"Prompt Tokens: {promptTokens}");
                 if (int.TryParse(apiResponse.ContextTokens, out int contextTokens))
                     answerMessage.AppendLine($"Context Tokens: {contextTokens}");
                 if (int.TryParse(apiResponse.QuestionTokens, out int questionTokens))
@@ -153,9 +155,9 @@ public static class GalaxyGpt
                     answerMessage.AppendLine($"Response Tokens: {responseTokens}");
 
                 // NOTE: These numbers are hardcoded and not necessarily representative of the actual costs, as the model can change
-                if (questionTokens != 0 && responseTokens != 0)
+                if (promptTokens != 0 && contextTokens != 0 && questionTokens != 0 && responseTokens != 0)
                     answerMessage.AppendLine(
-                        $"Cost: {Math.Round(contextTokens * 0.000015 + questionTokens * 0.000015 + responseTokens * 0.00006, 7)} Cents");
+                        $"Cost: {Math.Round(promptTokens * 0.000015 + contextTokens * 0.000015 + questionTokens * 0.000015 + responseTokens * 0.00006, 7)} Cents");
 
                 if (apiResponse.Duration != null)
                     answerMessage.AppendLine(
