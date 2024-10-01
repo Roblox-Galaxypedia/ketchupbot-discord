@@ -15,7 +15,7 @@ public static class GalaxyGpt
 {
     private static readonly HttpClient HttpClient = new();
 
-    private static int MaxResponseLength = 1800;
+    private static int _maxResponseLength = 1800;
 
     // Use port 6363 for development and 3636 for production
 #if !DEBUG
@@ -129,10 +129,10 @@ public static class GalaxyGpt
 
             // If verbose, take off an additional 25% to account for the extra information
             if (verbose)
-                MaxResponseLength = (int)(MaxResponseLength*0.75);
+                _maxResponseLength = (int)(_maxResponseLength*0.75);
 
-            if (apiResponse.Answer.Length > MaxResponseLength)
-                answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, MaxResponseLength)] + " (truncated)");
+            if (apiResponse.Answer.Length > _maxResponseLength)
+                answerMessage.AppendLine(apiResponse.Answer[..Math.Min(apiResponse.Answer.Length, _maxResponseLength)] + " (truncated)");
             else
                 answerMessage.AppendLine(apiResponse.Answer);
 
