@@ -126,10 +126,10 @@ public static class GalaxyGpt
                     .AppendLine();
 
             #region Response Answer
-            int _reducedMaxResponseLength;
+            int _reducedMaxResponseLength = _maxResponseLength;
             // If verbose, take off an additional 25% to account for the extra information
             if (verbose)
-                _reducedMaxResponseLength = (int)(_maxResponseLength * 0.75);
+                _reducedMaxResponseLength = (int)(_reducedMaxResponseLength * 0.75);
 
             if (apiResponse.Answer.Length > _reducedMaxResponseLength)
                 answerMessage.AppendLine(apiResponse.Answer[_reducedMaxResponseLength] +
