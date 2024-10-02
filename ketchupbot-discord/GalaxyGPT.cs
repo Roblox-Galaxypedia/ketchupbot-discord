@@ -132,7 +132,7 @@ public static class GalaxyGpt
                 _reducedMaxResponseLength = (int)(_reducedMaxResponseLength * 0.75);
 
             if (apiResponse.Answer.Length > _reducedMaxResponseLength)
-                answerMessage.AppendLine(apiResponse.Answer[_reducedMaxResponseLength] +
+                answerMessage.AppendLine(apiResponse.Answer[.._reducedMaxResponseLength] +
                                          " (truncated)");
             else
                 answerMessage.AppendLine(apiResponse.Answer);
