@@ -7,6 +7,10 @@ public class ApiResponse
     public required string Answer { get; init; }
     public string? Context { get; init; }
 
+    [JsonPropertyName("prompt_tokens")] public string? PromptTokens { get; init; }
+
+    [JsonPropertyName("context_tokens")] public string? ContextTokens { get; init; }
+
     [JsonPropertyName("question_tokens")] public string? QuestionTokens { get; init; }
 
     [JsonPropertyName("response_tokens")] public string? ResponseTokens { get; init; }
